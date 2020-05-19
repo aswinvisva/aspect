@@ -23,7 +23,4 @@ pip install -r requirements.txt
 python3 api.py
 ```
 
-4. Test the API with a separate terminal instance:
-```console
-python3 test_api.py
-```
+4. Upload an eye vessel image to test

@@ -1,7 +1,7 @@
 import io
 
 import flask
-from flask import jsonify, request, Response
+from flask import jsonify, request, Response, render_template
 from tensorflow.python.keras.models import load_model
 import numpy as np
 import cv2
@@ -17,7 +17,7 @@ app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>Diabetic Retinotherapy API</h1><p>Under Construction</p>"
+    return render_template('index.html')
 
 @app.route('/api/v1/predictor/diagnosis', methods=['POST'])
 def api_diagnosis():
@@ -46,7 +46,7 @@ def api_diagnosis():
             # classify the input image and then initialize the list
             # of predictions to return to the client
             prediction = model.predict(image)
-
+            print("Predictions:", prediction)
             # loop over the results and add them to the list of
             # returned predictions
             index = np.where(prediction == prediction.max())[1][0]

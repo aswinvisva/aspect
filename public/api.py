@@ -42,7 +42,7 @@ def api_diagnosis():
             image = Image.open(io.BytesIO(image))
 
             # preprocess the image and prepare it for classification
-            image = prepare_image(image, target=(224, 224))
+            image = image_preprocessing(image)
 
             # classify the input image and then initialize the list
             # of predictions to return to the client
@@ -61,6 +61,23 @@ def api_diagnosis():
 
     # return the data dictionary as a JSON response
     return flask.jsonify(data)
+
+def image_preprocessing(image):
+    # if the image mode is not RGB, convert it
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    # resize the input image and preprocess it
+    image = image.resize((224,224))
+    image = img_to_array(image)
+    # image = imagenet_utils.preprocess_input(image)
+    print(image.shape)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    image = cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0, 0), 224 / 10), -4,
+                            128)  # the trick is to add this line
+    image = np.expand_dims(image, axis=0)
+
+    return image
 
 def prepare_image(image, target):
     # if the image mode is not RGB, convert it

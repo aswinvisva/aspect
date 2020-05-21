@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="stylesheet" href="/static/css/styles.css" type="text/css">
+
+<head>
+
+  <title>Aspect</title>
+    <div class= header>
+      <h1>Aspect</h1>
+      <p>Using machine learning to detect Diabetic Retinopathy.</p>
+    </div>
+</head>
+
+<body>
+    <script>
+        function process_image(form) {
+          var file = document.getElementById('image').value;
+          var formData = new FormData(document.querySelector('form'))
+          var request = new XMLHttpRequest();
+          request.open("POST", "/api/v1/predictor/diagnosis");
+          request.send(formData);
+
+          request.onload=function() {
+                json=JSON.parse(request.responseText);
+                if (json["success"]) {
+                    var label = json["prediction"]["label"]
+
+                    if(label == 0) {
+                        document.getElementById("message").innerHTML= "Results are negative!";
+                    }
+                    else {
+                        document.getElementById("message").innerHTML= "Results are positive!";
+                    }
+
+
+                }
+                else {
+                    alert("There was an error processing the request!");
+                }
+            };
+
+        }
+    </script>
+
+        <form class=submit-form action="javascript:process_image(this)" id="form">
+          Select image to upload:
+          <input type="file" name="image" id="image">
+          <input type="submit" value="Upload Image" name="submit">
+        </form>
+    <div class=header>
+        <p id="message">Your prediction will appear here!</p>
+    </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import io
+import os
 
 import flask
 from flask import jsonify, request, Response, render_template
@@ -55,6 +56,8 @@ def api_diagnosis():
 
             # indicate that the request was a success
             data["success"] = True
+        else:
+            print("No image!")
 
     # return the data dictionary as a JSON response
     return flask.jsonify(data)

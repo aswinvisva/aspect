@@ -12,8 +12,28 @@
 </head>
 
 <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script>
+        function readURL(input) {
+        document.getElementById("message").innerHTML= "Press upload to view prediction!";
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+              $('#preview').attr('src', e.target.result);
+            }
+
+            reader.readAsDataURL(input.files[0]); // convert to base64 string
+          }
+        }
+
+        $("#image").change(function() {
+          readURL(this);
+        });
+
         function process_image(form) {
+        document.getElementById("message").innerHTML= "Loading prediction...";
+
           var file = document.getElementById('image').value;
           var formData = new FormData(document.querySelector('form'))
           var request = new XMLHttpRequest();
@@ -24,16 +44,28 @@
                 json=JSON.parse(request.responseText);
                 if (json["success"]) {
                     var label = json["prediction"]["label"]
+                    var distribution = json["prediction"]["probability_distribution"]
+                    var topValue = distribution[label]
 
                     if(label == 0) {
-                        document.getElementById("message").innerHTML= "Results are negative!";
+                        document.getElementById("message").innerHTML= "Results are negative!\n Confidence: " + (topValue.toFixed(4) * 100).toString()+"%";
                     }
-                    else {
-                        document.getElementById("message").innerHTML= "Results are positive!";
+                    else if(label == 1) {
+                        document.getElementById("message").innerHTML= "Mild Diabetic Retinopathy detected!\n Confidence: " + (topValue.toFixed(4) * 100).toString()+"%";
+                    }
+                    else if(label == 2) {
+                        document.getElementById("message").innerHTML= "Moderate Diabetic Retinopathy detected!\n Confidence: " + (topValue.toFixed(4) * 100).toString()+"%";
+                    }
+                    else if(label == 3) {
+                        document.getElementById("message").innerHTML= "Severe Diabetic Retinopathy detected!\n Confidence: " + (topValue.toFixed(4) * 100).toString()+"%";
+                    }
+                    else if(label == 4) {
+                        document.getElementById("message").innerHTML= "Proliferate Diabetic Retinopathy detected!\n Confidence: " + (topValue.toFixed(4) * 100).toString()+"%";
                     }
                 }
                 else {
                     alert("There was an error processing the request!");
+                    document.getElementById("message").innerHTML= "Could not make a prediction!";
                 }
             };
 
@@ -42,11 +74,12 @@
 
         <form class=submit-form action="javascript:process_image(this)" id="form">
           Select image to upload:
-          <input type="file" name="image" id="image">
+          <input type="file" name="image" id="image" onchange="javascript:readURL(this)">
           <input type="submit" value="Upload Image" name="submit">
         </form>
+    <img id="preview" src="#" alt="Image preview" class="image_preview"/>
     <div class=header>
-        <p id="message">Your prediction will appear here!</p>
+        <h3 id="message">Your prediction will appear here!</h3>
     </div>
 </body>
 </html>

@@ -7,7 +7,7 @@ from tensorflow.python.keras.models import load_model
 import numpy as np
 import cv2
 from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.applications import imagenet_utils
+from tensorflow.keras.applications import imagenet_utils, inception_v3
 from PIL import Image
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
@@ -47,11 +47,12 @@ def api_diagnosis():
             # classify the input image and then initialize the list
             # of predictions to return to the client
             prediction = model.predict(image)
-            print("Predictions:", prediction)
+            print(prediction)
+
             # loop over the results and add them to the list of
             # returned predictions
             index = np.where(prediction == prediction.max())[1][0]
-            r = {"label": float(index), "probability distribution:": prediction[0].tolist()}
+            r = {"label": float(index), "probability_distribution": prediction[0].tolist()}
             data["prediction"] = r
 
             # indicate that the request was a success
@@ -70,25 +71,24 @@ def image_preprocessing(image):
     # resize the input image and preprocess it
     image = image.resize((224,224))
     image = img_to_array(image)
-    # image = imagenet_utils.preprocess_input(image)
-    print(image.shape)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    image = cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0, 0), 224 / 10), -4,
-                            128)  # the trick is to add this line
+    image = inception_v3.preprocess_input(image)
+
     image = np.expand_dims(image, axis=0)
 
     return image
 
-def prepare_image(image, target):
+def prepare_image(image, target=(224, 224)):
     # if the image mode is not RGB, convert it
     if image.mode != "RGB":
         image = image.convert("RGB")
 
     # resize the input image and preprocess it
-    image = image.resize(target)
-    image = img_to_array(image)
-    image = np.expand_dims(image, axis=0)
-    image = imagenet_utils.preprocess_input(image)
+    # image = image.resize(target)
+    # image = img_to_array(image)
+    # image = np.expand_dims(image, axis=0)
+    # image = imagenet_utils.preprocess_input(image)
+    image = cv2.resize(image, target)
+    image = inception_v3.preprocess_input(image)
 
     # return the processed image
     return image

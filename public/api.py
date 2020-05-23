@@ -36,9 +36,9 @@ def api_diagnosis():
     # ensure an image was properly uploaded to our endpoint
     if flask.request.method == "POST":
 
-        if flask.request.files.get("image"):
+        if flask.request.files.get("files[]"):
             # read the image in PIL format
-            image = flask.request.files["image"].read()
+            image = flask.request.files["files[]"].read()
             image = Image.open(io.BytesIO(image))
 
             # preprocess the image and prepare it for classification

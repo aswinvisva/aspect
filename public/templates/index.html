@@ -14,13 +14,13 @@
 <body>
     <script>
         function process_image(form) {
-          var file = document.getElementById('image').value;
-          var formData = new FormData(document.querySelector('form'))
-          var request = new XMLHttpRequest();
-          request.open("POST", "/api/v1/predictor/diagnosis");
-          request.send(formData);
+            var file = document.getElementById('fileInput').value;
+            var formData = new FormData(document.querySelector('form'))
+            var request = new XMLHttpRequest();
+            request.open("POST", "/api/v1/predictor/diagnosis");
+            request.send(formData);
 
-          request.onload=function() {
+            request.onload=function() {
                 json=JSON.parse(request.responseText);
                 if (json["success"]) {
                     var label = json["prediction"]["label"]
@@ -31,24 +31,85 @@
                     else {
                         document.getElementById("message").innerHTML= "Results are positive!";
                     }
-
-
                 }
                 else {
                     alert("There was an error processing the request!");
                 }
             };
 
-        }
+  }
+
+var dropFileForm = document.getElementById("dropFileForm");
+var fileLabelText = document.getElementById("fileLabelText");
+var uploadStatus = document.getElementById("uploadStatus");
+var fileInput = document.getElementById("fileInput");
+var droppedFiles;
+
+function overrideDefault(event) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function fileHover() {
+    document.getElementById("dropFileForm").classList.add("fileHover");
+}
+
+function fileHoverEnd() {
+    document.getElementById("dropFileForm").classList.remove("fileHover");
+}
+
+function addFiles(event) {
+  droppedFiles = event.target.files || event.dataTransfer.files;
+  showFiles(droppedFiles);
+
+}
+
+function showFiles(files) {
+  if (files.length > 1) {
+    document.getElementById("fileLabelText").innerText = files.length + " files selected";
+  } else {
+    document.getElementById("fileLabelText").innerText = files[0].name;
+  }
+}
+
+
+function changeStatus(text) {
+    document.getElementById("uploadStatus").innerText = text;
+}
+
     </script>
 
-        <form class=submit-form action="javascript:process_image(this)" id="form">
-          Select image to upload:
-          <input type="file" name="image" id="image">
-          <input type="submit" value="Upload Image" name="submit">
-        </form>
+
+    <div class="centered">
+
+          <form id="dropFileForm" action="javascript:process_image(this)" method="post">
+              <input type="file" name="files[]" id="fileInput" multiple onchange="addFiles(event)">
+            
+              <label for="fileInput" id="fileLabel" ondragover="overrideDefault(event);fileHover();" ondragenter="overrideDefault(event);fileHover();" ondragleave="overrideDefault(event);fileHoverEnd();" ondrop="overrideDefault(event);fileHoverEnd();
+                    addFiles(event);">
+                <i class="fa fa-download fa-5x"></i>
+                <br>
+                <span id="fileLabelText">
+                  Choose a file or drag it here
+                </span>
+                <br>
+                <span id="uploadStatus"></span>
+              </label>
+            
+              <input type="submit" value="Upload Image" name="submit" class="uploadButton">
+              
+          </form>
+
+    </div>
+       
+
+
     <div class=header>
         <p id="message">Your prediction will appear here!</p>
     </div>
+
+    <link rel="stylesheet" href="/static/js/index" type="text/javascript">
+    <!-- <link type="text/javascript"
+    src="{{ url_for('static', filename='index.js') }}"> -->
 </body>
 </html>

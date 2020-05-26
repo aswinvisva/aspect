@@ -9,13 +9,21 @@
       <h1>Aspect</h1>
       <p>Using machine learning to detect Diabetic Retinopathy.</p>
     </div>
+
 </head>
 
 <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.js"></script>
+
     <script>
         function readURL(input) {
-        document.getElementById("message").innerHTML= "Press upload to view prediction!";
+         $('#message').animate({opacity: 0},200);
+
+         document.getElementById("message").innerHTML= "Press upload to view prediction!";
+
+         $('#message').animate({opacity: 100},200);
+
           if (input.files && input.files[0]) {
             var reader = new FileReader();
 
@@ -32,18 +40,24 @@
         });
 
         function process_image(form) {
-        document.getElementById("message").innerHTML= "Loading prediction...";
 
-          var formData = new FormData(document.querySelector('form'));
-          console.log(document.getElementById('fileInput').files);
+            $('#message').animate({opacity: 0},200);
+
+            document.getElementById("message").innerHTML= "Loading prediction...";
+
+             $('#message').animate({opacity: 100},200);
+
+            var formData = new FormData(document.querySelector('form'));
+
+            console.log(document.getElementById('fileInput').files);
+
             window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
 
+            var request = new XMLHttpRequest();
+            request.open("POST", "/api/v1/predictor/diagnosis");
+            request.send(formData);
 
-          var request = new XMLHttpRequest();
-          request.open("POST", "/api/v1/predictor/diagnosis");
-          request.send(formData);
-
-          request.onload=function() {
+            request.onload=function() {
                 json=JSON.parse(request.responseText);
                 if (json["success"]) {
                     var label = json["prediction"]["label"]
@@ -51,24 +65,36 @@
                     var topValue = distribution[label]
 
                     if(label == 0) {
+                        $('#message').animate({opacity: 0},200);
                         document.getElementById("message").innerHTML= "Results are negative!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
+                        $('#message').animate({opacity: 100},200);
                     }
                     else if(label == 1) {
+                        $('#message').animate({opacity: 0},200);
                         document.getElementById("message").innerHTML= "Mild Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
+                        $('#message').animate({opacity: 100},200);
                     }
                     else if(label == 2) {
+                        $('#message').animate({opacity: 0},200);
                         document.getElementById("message").innerHTML= "Moderate Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
+                        $('#message').animate({opacity: 100},200);
                     }
                     else if(label == 3) {
+                        $('#message').animate({opacity: 0},200);
                         document.getElementById("message").innerHTML= "Severe Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
+                        $('#message').animate({opacity: 100},200);
                     }
                     else if(label == 4) {
+                        $('#message').animate({opacity: 0},200);
                         document.getElementById("message").innerHTML= "Proliferate Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
+                        $('#message').animate({opacity: 100},200);
                     }
                 }
                 else {
                     alert("There was an error processing the request!");
+                    $('#message').animate({opacity: 0},200);
                     document.getElementById("message").innerHTML= "Could not make a prediction!";
+                    $('#message').animate({opacity: 100},200);
                 }
             };
 
@@ -134,8 +160,9 @@
         </div>
 
         <img id="preview" src="/static/assets/aspectlogo.png" alt="Image preview" class="image_preview"/>
-        <div class=header>
-        <h3 id="message">Your prediction will appear here!</h3>
-    </div>
+        <div class="prediction">
+            <h3 id="message">Your prediction will appear here!</h3>
+            <p>View <a href="dashboard">Dashboard</a></p>
+        </div>
 </body>
 </html>

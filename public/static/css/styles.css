@@ -6,7 +6,7 @@ body {
   font-family: 'Open Sans', monospace;
 
   font-weight: 200;
-  color: white;
+  color: black;
   width: 100%;
   height:100%;
     overflow-x: hidden; }
@@ -36,6 +36,22 @@ li {
   text-align: center;
 }
 
+.prediction {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+  text-align: center;
+  height: 100px;
+  line-height: 100px;
+  /* We're working with the body tag, and so with the WHOLE page */
+
+   color: black; /* The page text will be white */
+}
+
+.prediction h3 {
+    color: black;
+}
+
 .header h1 {
     color: black;
     font-size: 54px;
@@ -43,6 +59,7 @@ li {
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-smooth: auto;
+
 }
 
 .submit-form {

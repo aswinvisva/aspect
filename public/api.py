@@ -36,24 +36,29 @@ feature_names = ["Negative Result",
                  "Proliferate DR"
                  ]
 
-last_prediction = []
-last_image = []
+database = {}
+last_id=None
 
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
-
 @app.route('/dashboard/')
-def show_dashboard():
-    print(last_prediction)
+def recent_dashboard():
+    return redirect("/dashboard/"+last_id)
+
+@app.route('/dashboard/<page_id>')
+def show_dashboard(page_id):
+
+    if page_id not in database.keys():
+        return "Patient not found!"
 
     x = {
-        'No DR':last_prediction[0][0],
-        'Mild DR':last_prediction[0][1],
-        'Moderate DR': last_prediction[0][2],
-        'Severe DR': last_prediction[0][3],
-        'Proliferate DR': last_prediction[0][4],
+        'No DR':database[page_id]["Prediction"][0],
+        'Mild DR':database[page_id]["Prediction"][1],
+        'Moderate DR': database[page_id]["Prediction"][2],
+        'Severe DR': database[page_id]["Prediction"][3],
+        'Proliferate DR': database[page_id]["Prediction"][4],
     }
 
     data = pd.Series(x).reset_index(name='value').rename(columns={'index': 'country'})
@@ -67,7 +72,7 @@ def show_dashboard():
             start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
             line_color="white", fill_color='color', legend_field='country', source=data)
 
-    imgArray = last_image[0].convert('RGBA')
+    imgArray = database[page_id]["Image"].convert('RGBA')
     xdim, ydim = imgArray.size
 
     img = np.empty((ydim, xdim), dtype=np.uint32)
@@ -84,7 +89,7 @@ def show_dashboard():
     image_script, image_div = components(image)
 
     return render_template('dashboard.html', script=script,
-                           div=div, script2=image_script, div2=image_div, patient_id=uuid.uuid1())
+                           div=div, script2=image_script, div2=image_div, patient_id=page_id)
 
 
 @app.route('/api/v1/predictor/diagnosis', methods=['POST'])
@@ -104,21 +109,25 @@ def api_diagnosis():
     if flask.request.method == "POST":
 
         if flask.request.files.get("image"):
+            patient_id = str(uuid.uuid1())
+            database[patient_id] = {}
+
+            global last_id
+            last_id = patient_id
+
             # read the image in PIL format
             image = flask.request.files["image"].read()
             image = Image.open(io.BytesIO(image))
 
             # preprocess the image and prepare it for classification
-            image = image_preprocessing(image)
+            image = image_preprocessing(image, patient_id)
 
             # classify the input image and then initialize the list
             # of predictions to return to the client
             prediction = model.predict(image)
 
-            if len(last_prediction) > 0:
-                last_prediction.pop()
-
-            last_prediction.append(prediction[0])
+            database[patient_id]["Prediction"] = prediction[0]
+            print(database[patient_id])
 
             # loop over the results and add them to the list of
             # returned predictions
@@ -136,7 +145,7 @@ def api_diagnosis():
     return flask.jsonify(data)
 
 
-def image_preprocessing(image):
+def image_preprocessing(image, patient_id):
     # if the image mode is not RGB, convert it
     if image.mode != "RGB":
         image = image.convert("RGB")
@@ -144,10 +153,7 @@ def image_preprocessing(image):
     # resize the input image and preprocess it
     image = image.resize((224, 224))
 
-    if len(last_image) > 0:
-        last_image.pop()
-
-    last_image.append(image)
+    database[patient_id]["Image"] = image
 
     image = img_to_array(image)
 
@@ -156,23 +162,5 @@ def image_preprocessing(image):
     image = np.expand_dims(image, axis=0)
 
     return image
-
-
-def prepare_image(image, target=(224, 224)):
-    # if the image mode is not RGB, convert it
-    if image.mode != "RGB":
-        image = image.convert("RGB")
-
-    # resize the input image and preprocess it
-    # image = image.resize(target)
-    # image = img_to_array(image)
-    # image = np.expand_dims(image, axis=0)
-    # image = imagenet_utils.preprocess_input(image)
-    image = cv2.resize(image, target)
-    image = inception_v3.preprocess_input(image)
-
-    # return the processed image
-    return image
-
 
 app.run()

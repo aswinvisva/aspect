@@ -12,8 +12,26 @@
 <body>
 <h1>Dashboard</h1>
 
+<script>
+    function copyLink()
+    {
+
+        var dummy = document.createElement('input'),
+        text = window.location.href;
+        document.body.appendChild(dummy);
+        dummy.value = text;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        alert('Link copied!');
+    }
+</script>
+
 <p>Patient ID:
 {{ patient_id | safe}}</p>
+
+<button onclick="javascript:copyLink()">Copy my link!</button>
+
 
  <div style="width: 20%">
 
@@ -27,8 +45,9 @@
         {{ div2 | safe }}
         {{ script2 | safe }}
 
-
     </div>
+
+    <p>Go <a href="/">Home</a></p>
 
 </body>
 </html>

@@ -35,7 +35,6 @@ db = SQLAlchemy(app)
 
 last_id = None
 
-
 class EyePatient(db.Model):
     id_key = db.Column(db.Integer, primary_key=True)
     id = db.Column(db.String(120))
@@ -48,6 +47,8 @@ class EyePatient(db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.id
+
+db.create_all()
 
 
 @app.route('/', methods=['GET'])

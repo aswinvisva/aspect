@@ -1,5 +1,6 @@
 import io
 import os
+import sqlite3
 from math import pi
 
 import flask
@@ -17,6 +18,7 @@ from PIL import Image
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 import uuid
+from flask_sqlalchemy import SQLAlchemy
 
 import pandas as pd
 
@@ -25,19 +27,28 @@ from os.path import dirname, join
 from bokeh.io import curdoc
 from bokeh.embed import components
 from bokeh.models.widgets import Tabs
+from werkzeug.utils import secure_filename
 
 app = flask.Flask(__name__)
-app.config["DEBUG"] = True
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/patients.db'
+db = SQLAlchemy(app)
 
-feature_names = ["Negative Result",
-                 "Mild DR",
-                 "Moderate DR",
-                 "Severe DR",
-                 "Proliferate DR"
-                 ]
+last_id = None
 
-database = {}
-last_id=None
+
+class EyePatient(db.Model):
+    id_key = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(120))
+    image_url = db.Column(db.String(120))
+    no_dr_prob = db.Column(db.Float)
+    mild_dr_prob = db.Column(db.Float)
+    moderate_dr_prob = db.Column(db.Float)
+    severe_dr_prob = db.Column(db.Float)
+    proliferate_dr_prob = db.Column(db.Float)
+
+    def __repr__(self):
+        return '<User %r>' % self.id
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -45,20 +56,26 @@ def home():
 
 @app.route('/dashboard/')
 def recent_dashboard():
-    return redirect("/dashboard/"+last_id)
+    return redirect("/dashboard/" + last_id)
+
+@app.route('/patients/')
+def get_patients():
+    patients = EyePatient.query.all()
+
+    return render_template("patients.html", patients=patients)
 
 @app.route('/dashboard/<page_id>')
 def show_dashboard(page_id):
+    patient = EyePatient.query.filter_by(id=page_id).first()
 
-    if page_id not in database.keys():
+    if patient is None:
         return "Patient not found!"
-
     x = {
-        'No DR':database[page_id]["Prediction"][0],
-        'Mild DR':database[page_id]["Prediction"][1],
-        'Moderate DR': database[page_id]["Prediction"][2],
-        'Severe DR': database[page_id]["Prediction"][3],
-        'Proliferate DR': database[page_id]["Prediction"][4],
+        'No DR': patient.no_dr_prob,
+        'Mild DR': patient.mild_dr_prob,
+        'Moderate DR': patient.moderate_dr_prob,
+        'Severe DR': patient.severe_dr_prob,
+        'Proliferate DR': patient.proliferate_dr_prob
     }
 
     data = pd.Series(x).reset_index(name='value').rename(columns={'index': 'country'})
@@ -72,7 +89,8 @@ def show_dashboard(page_id):
             start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
             line_color="white", fill_color='color', legend_field='country', source=data)
 
-    imgArray = database[page_id]["Image"].convert('RGBA')
+    im = Image.open(patient.image_url)
+    imgArray = im.convert('RGBA')
     xdim, ydim = imgArray.size
 
     img = np.empty((ydim, xdim), dtype=np.uint32)
@@ -82,8 +100,8 @@ def show_dashboard(page_id):
     view[:, :, :] = np.flipud(np.asarray(imgArray))
 
     dim = max(xdim, ydim)
-    image = figure(title="Uploaded Image",x_range=(0,dim), y_range=(0,dim))
-    image.image_rgba(image=[img],x=0, y=0, dw=xdim, dh=ydim)
+    image = figure(title="Uploaded Image", x_range=(0, dim), y_range=(0, dim))
+    image.image_rgba(image=[img], x=0, y=0, dw=xdim, dh=ydim)
 
     script, div = components(p)
     image_script, image_div = components(image)
@@ -110,7 +128,6 @@ def api_diagnosis():
 
         if flask.request.files.get("image"):
             patient_id = str(uuid.uuid1())
-            database[patient_id] = {}
 
             global last_id
             last_id = patient_id
@@ -118,6 +135,7 @@ def api_diagnosis():
             # read the image in PIL format
             image = flask.request.files["image"].read()
             image = Image.open(io.BytesIO(image))
+            image.save(os.path.join('saved_images', secure_filename(patient_id) + '.jpg'), 'JPEG')
 
             # preprocess the image and prepare it for classification
             image = image_preprocessing(image, patient_id)
@@ -126,8 +144,15 @@ def api_diagnosis():
             # of predictions to return to the client
             prediction = model.predict(image)
 
-            database[patient_id]["Prediction"] = prediction[0]
-            print(database[patient_id])
+            db.session.add(EyePatient(id=patient_id,
+                                      image_url=str(os.path.join('saved_images', secure_filename(patient_id) + '.jpg')),
+                                      no_dr_prob=float(prediction[0][0]),
+                                      mild_dr_prob=float(prediction[0][1]),
+                                      moderate_dr_prob=float(prediction[0][2]),
+                                      severe_dr_prob=float(prediction[0][3]),
+                                      proliferate_dr_prob=float(prediction[0][4])
+                                      ))
+            db.session.commit()
 
             # loop over the results and add them to the list of
             # returned predictions
@@ -153,8 +178,6 @@ def image_preprocessing(image, patient_id):
     # resize the input image and preprocess it
     image = image.resize((224, 224))
 
-    database[patient_id]["Image"] = image
-
     image = img_to_array(image)
 
     image = inception_v3.preprocess_input(image)
@@ -163,4 +186,6 @@ def image_preprocessing(image, patient_id):
 
     return image
 
-app.run()
+
+if __name__ == '__main__':
+    app.run()

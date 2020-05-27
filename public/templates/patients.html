@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patients</title>
+    <link rel="stylesheet" href="/static/css/styles.css" type="text/css">
+
+</head>
+
+<div class="centered">
+    {% for patient in patients %}
+        <div class="patient_item">
+            {{ patient.id }}
+            <form action="/dashboard/{{ patient.id }}">
+                <input type="submit" value="Go to Patient" />
+            </form>
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>

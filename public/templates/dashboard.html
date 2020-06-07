@@ -27,27 +27,44 @@
     }
 </script>
 
-<p>Patient ID:
-{{ patient_id | safe}}</p>
+<div">
+    <div id="visual_container">
+        <p>Patient ID: {{ patient_id | safe}}</p>
 
-<button onclick="javascript:copyLink()">Copy my link!</button>
+        <button onclick="javascript:copyLink()">Copy my link!</button>
 
+        <div>
+            {{ div | safe }}
+            {{ script | safe }}
+        </div>
 
- <div style="width: 20%">
+        <div>
+            {{ div2 | safe }}
+            {{ script2 | safe }}
+        </div>
 
-        {{ div | safe }}
-        {{ script | safe }}
-
+        <p>Go <a href="/">Home</a></p>
+        <p>Go <a href="/patients">Patients List</a></p>
     </div>
 
-    <div style="width: 20%">
+    <div id="visual_container">
 
-        {{ div2 | safe }}
-        {{ script2 | safe }}
+        <label for="diagnosis">Please select a diagnosis:</label>
+        <select name="diagnosis" id="diagnosis" form="diagnosisform">
+          <option value="No DR">No DR</option>
+          <option value="Mild DR">Mild DR</option>
+          <option value="Moderate DR">Moderate DR</option>
+          <option value="Severe DR">Severe DR</option>
+          <option value="Proliferate DR">Proliferate DR</option>
+        </select>
 
+        <form action="/action_page.php" id="diagnosisform">
+            <label for="comments">Please enter comments:</label>
+            <input type="text" id="comments" name="comments">
+            <input type="submit">
+          </form>
     </div>
-
-    <p>Go <a href="/">Home</a></p>
+</div>
 
 </body>
 </html>

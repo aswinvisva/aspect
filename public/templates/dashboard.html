@@ -10,61 +10,47 @@
 </head>
 
 <body>
-<h1>Dashboard</h1>
+    <div class="topnav">
+        <a href="/">Home</a>
+        <a href="/patient_landing">Register</a>
+        <a href="/doctor_signup">Diagnose</a>
+        <a href="#about">About</a>
+    </div>
 
-<script>
-    function copyLink()
-    {
+    <div id="dashboard">
+        <h1>Patient Dashboard</h1>
 
-        var dummy = document.createElement('input'),
-        text = window.location.href;
-        document.body.appendChild(dummy);
-        dummy.value = text;
-        dummy.select();
-        document.execCommand('copy');
-        document.body.removeChild(dummy);
-        alert('Link copied!');
-    }
-</script>
+        <div id="graphs_container">
+            <p>Patient ID: {{ patient_id | safe}}</p>
 
-<div">
-    <div id="visual_container">
-        <p>Patient ID: {{ patient_id | safe}}</p>
+            <div>
+                {{ div | safe }} {{ script | safe }}
+            </div>
 
-        <button onclick="javascript:copyLink()">Copy my link!</button>
-
-        <div>
-            {{ div | safe }}
-            {{ script | safe }}
+            <div>
+                {{ div2 | safe }} {{ script2 | safe }}
+            </div>
         </div>
-
-        <div>
-            {{ div2 | safe }}
-            {{ script2 | safe }}
-        </div>
-
-        <p>Go <a href="/">Home</a></p>
-        <p>Go <a href="/patients">Patients List</a></p>
     </div>
 
     <div id="visual_container">
 
-        <label for="diagnosis">Please select a diagnosis:</label>
+        <label for="diagnosis"><p>Please select a diagnosis:</p></label>
         <select name="diagnosis" id="diagnosis" form="diagnosisform">
-          <option value="No DR">No DR</option>
-          <option value="Mild DR">Mild DR</option>
-          <option value="Moderate DR">Moderate DR</option>
-          <option value="Severe DR">Severe DR</option>
-          <option value="Proliferate DR">Proliferate DR</option>
+            <option value="No DR">No DR</option>
+            <option value="Mild DR">Mild DR</option>
+            <option value="Moderate DR">Moderate DR</option>
+            <option value="Severe DR">Severe DR</option>
+            <option value="Proliferate DR">Proliferate DR</option>
         </select>
 
         <form action="/action_page.php" id="diagnosisform">
-            <label for="comments">Please enter comments:</label>
+            <label for="comments"><p>Please enter comments:</p></label>
             <input type="text" id="comments" name="comments">
             <input type="submit">
-          </form>
+        </form>
     </div>
-</div>
 
 </body>
+
 </html>

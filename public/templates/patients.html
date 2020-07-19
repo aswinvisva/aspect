@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Patients</title>
@@ -7,19 +8,28 @@
 
 </head>
 
-<div class="centered">
+<body>
+    <div class="topnav">
+        <a href="/">Home</a>
+        <a href="/patient_landing">Register</a>
+        <a href="/doctor_signup">Diagnose</a>
+        <a href="#about">About</a>
+    </div>
 
-    <h2>Your assigned patients.</h2>
+    <div class="centered">
 
-    {% for patient in patients %}
-        <div class="patient_item">
-            {{ patient.id }}
-            <form action="/dashboard/{{ patient.id }}">
-                <input type="submit" value="Go to Patient" />
-            </form>
+        <div class=header>
+            <h1>Patient Database</h1>
         </div>
-    {% endfor %}
-</div>
+
+        {% for patient in patients %}
+        <div class="patient_item">
+            <p>Patient ID: {{ patient.id }}</p>
+            <a href="/dashboard/{{ patient.id }}">Go to Patient ></a>
+        </div>
+        {% endfor %}
+    </div>
 
 </body>
+
 </html>

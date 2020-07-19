@@ -3,166 +3,34 @@
 <link rel="stylesheet" href="/static/css/styles.css" type="text/css">
 
 <head>
-
-  <title>Aspect</title>
-    <div class= header>
-      <h1>Aspect</h1>
-      <p>Using machine learning to detect Diabetic Retinopathy.</p>
-    </div>
-
+    <title>Aspect</title>
 </head>
 
 <body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.js"></script>
+    <div class="topnav">
+        <a href="/">Home</a>
+        <a href="/patient_landing">Register</a>
+        <a href="/doctor_signup">Diagnose</a>
+        <a href="#about">About</a>
+    </div>
 
-    <script>
-        function readURL(input) {
-         $('#message').animate({opacity: 0},200);
+    <div class="banner">
+        <p>Sign up for free, anonymous, AI-based diagnosis.</p>
+    </div>
 
-         document.getElementById("message").innerHTML= "Press upload to view prediction!";
+    <div class="theme-dark">
+        <h1>Aspect</h1>
+        <h3>Using machine learning to detect Diabetic Retinopathy.</h3>
 
-         $('#message').animate({opacity: 100},200);
-
-          if (input.files && input.files[0]) {
-            var reader = new FileReader();
-
-            reader.onload = function(e) {
-              $('#preview').attr('src', e.target.result);
-            }
-
-            reader.readAsDataURL(input.files[0]); // convert to base64 string
-          }
-        }
-
-        $("#image").change(function() {
-          readURL(this);
-        });
-
-        function process_image(form) {
-
-            $('#message').animate({opacity: 0},200);
-
-            document.getElementById("message").innerHTML= "Loading prediction...";
-
-             $('#message').animate({opacity: 100},200);
-
-            var formData = new FormData(document.querySelector('form'));
-
-            console.log(document.getElementById('fileInput').files);
-
-            window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
-
-            var request = new XMLHttpRequest();
-            request.open("POST", "/api/v1/predictor/diagnosis");
-            request.send(formData);
-
-            request.onload=function() {
-                json=JSON.parse(request.responseText);
-                if (json["success"]) {
-                    var label = json["prediction"]["label"]
-                    var distribution = json["prediction"]["probability_distribution"]
-                    var topValue = distribution[label]
-
-                    if(label == 0) {
-                        $('#message').animate({opacity: 0},200);
-                        document.getElementById("message").innerHTML= "Results are negative!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
-                        $('#message').animate({opacity: 100},200);
-                    }
-                    else if(label == 1) {
-                        $('#message').animate({opacity: 0},200);
-                        document.getElementById("message").innerHTML= "Mild Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
-                        $('#message').animate({opacity: 100},200);
-                    }
-                    else if(label == 2) {
-                        $('#message').animate({opacity: 0},200);
-                        document.getElementById("message").innerHTML= "Moderate Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
-                        $('#message').animate({opacity: 100},200);
-                    }
-                    else if(label == 3) {
-                        $('#message').animate({opacity: 0},200);
-                        document.getElementById("message").innerHTML= "Severe Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
-                        $('#message').animate({opacity: 100},200);
-                    }
-                    else if(label == 4) {
-                        $('#message').animate({opacity: 0},200);
-                        document.getElementById("message").innerHTML= "Proliferate Diabetic Retinopathy detected!\n Confidence: " + (topValue * 100).toFixed(2).toString()+"%";
-                        $('#message').animate({opacity: 100},200);
-                    }
-                }
-                else {
-                    alert("There was an error processing the request!");
-                    $('#message').animate({opacity: 0},200);
-                    document.getElementById("message").innerHTML= "Could not make a prediction!";
-                    $('#message').animate({opacity: 100},200);
-                }
-            };
-
-        }
-
-        var form = document.getElementById("form");
-        var fileLabelText = document.getElementById("fileLabelText");
-        var uploadStatus = document.getElementById("uploadStatus");
-        var fileInput = document.getElementById("fileInput");
-        var droppedFiles;
-
-        function overrideDefault(event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        function fileHover() {
-            document.getElementById("form").classList.add("fileHover");
-        }
-
-        function fileHoverEnd() {
-            document.getElementById("form").classList.remove("fileHover");
-        }
-
-        function addFiles(event) {
-          droppedFiles = event.target.files || event.dataTransfer.files;
-           document.getElementById("fileInput").files = event.target.files || event.dataTransfer.files;
-           readURL(document.getElementById("fileInput"));
-          showFiles(droppedFiles);
-        }
-
-        function showFiles(files) {
-          if (files.length > 1) {
-            document.getElementById("fileLabelText").innerText = files.length + " files selected";
-          } else {
-            document.getElementById("fileLabelText").innerText = files[0].name;
-          }
-        }
-
-
-        function changeStatus(text) {
-            document.getElementById("uploadStatus").innerText = text;
-        }
-    </script>
-        <div class="centered">
-            <form id="form" action="javascript:process_image(this)" method="post">
-                  <input type="file" name="image" id="fileInput" multiple onchange="addFiles(event)">
-
-                  <label for="fileInput" id="fileLabel" ondragover="overrideDefault(event);fileHover();" ondragenter="overrideDefault(event);fileHover();" ondragleave="overrideDefault(event);fileHoverEnd();" ondrop="overrideDefault(event);fileHoverEnd();
-                        addFiles(event);">
-                    <i class="fa fa-download fa-5x"></i>
-                    <br>
-                    <span id="fileLabelText">
-                      Choose a file or drag it here
-                    </span>
-                    <br>
-                    <span id="uploadStatus"></span>
-                  </label>
-
-                  <input type="submit" value="Upload Image" name="submit" class="uploadButton">
-
-            </form>
+        <div class="links">
+            <div class="in-line-links"><a href="/patient_landing">Register a Patient ></a></div>
+            <div class="in-line-links"><a href="/doctor_signup">Diagnose a Patient ></a></div>
         </div>
 
-        <img id="preview" src="/static/assets/aspectlogo.png" alt="Image preview" class="image_preview"/>
-        <div class="prediction">
-            <h3 id="message">Your prediction will appear here!</h3>
-            <p>View <a href="dashboard">Dashboard</a></p>
-        </div>
+        <img id="preview" src="/static/assets/eye.png" alt="Image preview" class="image_preview" />
+    </div>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.js"></script>
+
 </html>

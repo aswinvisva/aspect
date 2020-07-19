@@ -55,6 +55,14 @@ db.create_all()
 def home():
     return render_template('index.html')
 
+@app.route('/patient_landing', methods=['GET'])
+def patient_landing():
+    return render_template('patient_landing.html')
+
+@app.route('/doctor_signup', methods=['GET'])
+def doctor_signup():
+    return render_template('doctor_signup.html')
+
 @app.route('/dashboard/')
 def recent_dashboard():
     return redirect("/dashboard/" + last_id)

@@ -10,6 +10,18 @@
 </head>
 
 <body>
+
+    <script>
+        function process_diagnosis(id) {
+            var formData = new FormData(document.getElementById('diagnosisform'));
+            var request = new XMLHttpRequest();
+
+            request.open("POST", "/api/v1/add_diagnosis?" + "id=" + id);
+            request.send(formData);
+        }
+    </script>
+
+
     <div class="topnav">
         <a href="/">Home</a>
         <a href="/patient_landing">Register</a>
@@ -21,7 +33,7 @@
         <h1>Patient Dashboard</h1>
 
         <div id="graphs_container">
-            <p>Patient ID: {{ patient_id | safe}}</p>
+            <h2>Patient ID: {{ patient_id | safe}}</h2>
 
             <div>
                 {{ div | safe }} {{ script | safe }}
@@ -34,7 +46,23 @@
     </div>
 
     <div id="visual_container">
+        <h3>Overall Sentiment</h3>
+        {% for diagnosis in sentiment.keys() %}
+        <p><b>{{ diagnosis }} </b>: {{ (sentiment[diagnosis] / number) * 100 }} %</p>
+        {% endfor %}
 
+
+        <h3>Past Diagnoses:</h3>
+        <nav>
+            <ul>
+                {% for d in diagnosis %}
+                <li><b>Diagnosis:</b> {{ d.doctor_diagnosis}}</li>
+                <li><b>Comments:</b> {{ d.doctor_comments}}</li>
+                {% endfor %}
+            </ul>
+        </nav>
+
+        <h3>Please Enter Your Diagnosis:</h3>
         <label for="diagnosis"><p>Please select a diagnosis:</p></label>
         <select name="diagnosis" id="diagnosis" form="diagnosisform">
             <option value="No DR">No DR</option>
@@ -44,7 +72,7 @@
             <option value="Proliferate DR">Proliferate DR</option>
         </select>
 
-        <form action="/action_page.php" id="diagnosisform">
+        <form id="diagnosisform" action="javascript:process_diagnosis(String({{ patient_id | safe}}))">
             <label for="comments"><p>Please enter comments:</p></label>
             <input type="text" id="comments" name="comments">
             <input type="submit">

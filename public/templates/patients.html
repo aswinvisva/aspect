@@ -25,7 +25,8 @@
         {% for patient in patients %}
         <div class="patient_item">
             <p>Patient ID: {{ patient.id }}</p>
-            <a href="/dashboard/{{ patient.id }}">Go to Patient ></a>
+            <p>Date Added: {{ patient.date_added }}</p>
+            <a href="/dashboard/{{ patient.id_key }}">Go to Patient ></a>
         </div>
         {% endfor %}
     </div>

@@ -19,6 +19,8 @@ from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 import uuid
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from collections import Counter
 
 import pandas as pd
 
@@ -28,15 +30,19 @@ from bokeh.io import curdoc
 from bokeh.embed import components
 from bokeh.models.widgets import Tabs
 from werkzeug.utils import secure_filename
+from flask_migrate import Migrate
 
 app = flask.Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/patients.db'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 last_id = None
 
 class EyePatient(db.Model):
+    __tablename__ = 'patients'
     id_key = db.Column(db.Integer, primary_key=True)
+    date_added = db.Column(db.Date)
     id = db.Column(db.String(120))
     image_url = db.Column(db.String(120))
     no_dr_prob = db.Column(db.Float)
@@ -44,12 +50,20 @@ class EyePatient(db.Model):
     moderate_dr_prob = db.Column(db.Float)
     severe_dr_prob = db.Column(db.Float)
     proliferate_dr_prob = db.Column(db.Float)
+    diagnosis = db.relationship("Diagnosis", backref="patients")
 
     def __repr__(self):
         return '<User %r>' % self.id
 
-db.create_all()
+class Diagnosis(db.Model):
+    __tablename__ = 'diagnosis'
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id_key'))
+    doctor_diagnosis = db.Column(db.String(120))
+    doctor_comments = db.Column(db.String(120))
+    date_added = db.Column(db.Date)
 
+db.create_all()
 
 @app.route('/', methods=['GET'])
 def home():
@@ -73,9 +87,32 @@ def get_patients():
 
     return render_template("patients.html", patients=patients)
 
+@app.route('/api/v1/add_diagnosis', methods=['POST'])
+def add_diagnosis():
+    id = search = request.args.get("id")
+    diagnosis = request.form.get('diagnosis')
+    comments = request.form.get('comments')
+
+    db.session.add(Diagnosis(patient_id=id,
+                             doctor_diagnosis=diagnosis,
+                             doctor_comments=comments,
+                             date_added=datetime.now()
+                            ))
+    db.session.commit()
+
+    data = {}
+    data["response"] = 200
+
+    return flask.jsonify(data)
+
 @app.route('/dashboard/<page_id>')
 def show_dashboard(page_id):
-    patient = EyePatient.query.filter_by(id=page_id).first()
+    patient = EyePatient.query.filter_by(id_key=page_id).first()
+    overall_diagnosis = Diagnosis.query.filter_by(patient_id=page_id)
+
+    diagnosis = [d.doctor_diagnosis for d in overall_diagnosis]
+    sentiment = Counter(diagnosis)
+    number_of_diagnoses = len(diagnosis)
 
     if patient is None:
         return "Patient not found!"
@@ -116,7 +153,8 @@ def show_dashboard(page_id):
     image_script, image_div = components(image)
 
     return render_template('dashboard.html', script=script,
-                           div=div, script2=image_script, div2=image_div, patient_id=page_id)
+                           div=div, script2=image_script, div2=image_div, patient_id=page_id,
+                           sentiment=sentiment, number=number_of_diagnoses, diagnosis=overall_diagnosis)
 
 
 @app.route('/api/v1/predictor/diagnosis', methods=['POST'])
@@ -154,6 +192,7 @@ def api_diagnosis():
             prediction = model.predict(image)
 
             db.session.add(EyePatient(id=patient_id,
+                                      date_added=datetime.now(),
                                       image_url=str(os.path.join('saved_images', secure_filename(patient_id) + '.jpg')),
                                       no_dr_prob=float(prediction[0][0]),
                                       mild_dr_prob=float(prediction[0][1]),
